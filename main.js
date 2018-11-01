@@ -13,6 +13,8 @@ const bot = new TelegramBot(token,{ polling:{
     }
 });
 
+console.log('starting bot');
+
 const startMenuMsgOpt = {
     parse_mode: "HTML",
     disable_web_page_preview: false,
@@ -36,13 +38,17 @@ const startMenuMsgOpt = {
 };
 
 bot.onText(/\/menu/, function (message, match) {
-    var msgText = message.text;
+    let msgText = message.text;
     let clientId = message.hasOwnProperty('chat') ? message.chat.id : message.from.id;
+    bot.sendMessage(clientId, '<strong>MENU</strong>', startMenuMsgOpt);
+});
 
-    bot.sendMessage(clientId, 'MENU', startMenuMsgOpt);
+bot.onText(/\/about/, function (msg) {
+
 });
 
 bot.on('message', msg => {
+
     const chatId = msg.chat.id;
     
     if (msg.text === 'Посчитать проект') {
@@ -93,7 +99,6 @@ bot.on('message', msg => {
         bot.sendMessage(chatId,'Наш менеджер');
         bot.sendContact(chatId,'+79123657973','Dmitry');
     }
-
     if (msg.contact !== undefined){
         var contact = msg.contact;
         var fName = contact.first_name;
@@ -104,13 +109,59 @@ bot.on('message', msg => {
     }
 });
 
+var cost = 0;
 bot.on('callback_query', query => {
     const {message: {chat, message_id, text}} = query;
-    //console.log(debug(query));
+    console.log(debug(query));
 
     switch (query.data) {
+        case "design":
+            bot.sendMessage(chat.id,'Выберите вид/виды требуемой услуги одним нажатием по нужным пунктам',{
+                disable_web_page_preview:false,
+                reply_markup:JSON.stringify({
+                    inline_keyboard:[
+                        [{
+                            text:'Дизайн корпоративного сайта',
+                            callback_data:'dcs'
+                        }],
+                        [{
+                            text:'Брендинг (логотипы, фирменный стиль)',
+                            callback_data:'db'
+                        }],
+                        [{
+                            text:'Дизайн приложения',
+                            callback_data:'da'
+                        }],
+                        [{
+                            text:'Дизайн магазина',
+                            callback_data:'dm'
+                        }],
+                        [{
+                            text:'Закрыть',
+                            callback_data:'dclose',
+                        }]
+                    ]
+                })
+            });
+            break;
+        case 'dcs':
+            bot.sendMessage(chat.id,'10 000');
+            cost+=10000;
+            break;
+
+        case 'da':
+            bot.sendMessage(chat.id, '10 000');
+            cost+=10000;
+            break;
+
+        case 'dclose':
+            //console.log(chat.id+" "+query.message.message_id);
+            //bot.editMessageReplyMarkup(query.chat.id, query.message.message_id);
+            bot.sendMessage(chat.id, 'Итоговая сумма : '+cost);
+            break;
         default:
             console.log('unknown callback');
+
     }
 
     bot.answerCallbackQuery({callback_query_id: query.id});

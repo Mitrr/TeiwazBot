@@ -2,7 +2,7 @@
   "name": "teiwazcontactbot",
   "version": "1.0.0",
   "description": "bot for find contact information,leave a request and calculating your project",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
