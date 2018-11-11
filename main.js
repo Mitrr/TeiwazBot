@@ -1,7 +1,8 @@
 process.env["NTBA_FIX_319"] = 1;
 
 const TelegramBot = require('node-telegram-bot-api');
-const token = '663693965:AAEqeavpyzA55J0_ZM8REI1BN95Y8FeBnk8';
+const tokenInfo = require("./token");
+const token = tokenInfo.token;
 
 const keyboardsModule = require('./keyboards');
 
@@ -109,9 +110,11 @@ bot.on('callback_query', query => {
         case 'close':
             bot.deleteMessage(chat.id, query.message.message_id,);
             //bot.answerCallbackQuery(query.id,"idi nakhyi", true);
-            bot.sendMessage(chat.id, `Итоговая сумма за услугу ${bill.service} = ${bill.cost}`);
-            bill.cost = 0;
-            bill.service = '';
+            if (bill.cost !== 0) {
+                bot.sendMessage(chat.id, `Итоговая сумма за услугу ${bill.service} = ${bill.cost}`);
+                bill.cost = 0;
+                bill.service = '';
+            }
             break;
         default:
             console.log('unknown callback');
