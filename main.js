@@ -1,8 +1,9 @@
 process.env["NTBA_FIX_319"] = 1;
 
 const TelegramBot = require('node-telegram-bot-api');
-
 const token = '663693965:AAEqeavpyzA55J0_ZM8REI1BN95Y8FeBnk8';
+
+const keyboardsModule = require('./keyboards');
 
 const bot = new TelegramBot(token,{ polling:{
         interval: 300,
@@ -15,36 +16,16 @@ const bot = new TelegramBot(token,{ polling:{
 
 console.log('starting bot');
 
-const startMenuMsgOpt = {
-    parse_mode: "HTML",
-    disable_web_page_preview: false,
-    reply_markup: JSON.stringify({
-        keyboard:[
-            [{
-                text:'Оставить заявку',
-                request_contact: true,
-            }],
-            [{
-                text:'Посчитать проект'
-            }],
-            [{
-                text:'Наши контактные данные'
-            }],
-            [{
-                text:'О нас'
-            }]
-        ]
-    })
-};
+const startMenuMsgOpt = keyboardsModule.alotofmenu.mainMenu;
 
 bot.onText(/\/menu/, function (message, match) {
-    let msgText = message.text;
     let clientId = message.hasOwnProperty('chat') ? message.chat.id : message.from.id;
-    bot.sendMessage(clientId, '<strong>MENU</strong>', startMenuMsgOpt);
+    bot.sendMessage(clientId, '<strong>Главное Меню</strong>', startMenuMsgOpt);
 });
 
-bot.onText(/\/about/, function (msg) {
-
+bot.onText(/\/start/, function (message) {
+    let clientId = message.hasOwnProperty('chat') ? message.chat.id : message.from.id;
+    bot.sendMessage(clientId, 'Доброго времени суток! Введите команду /menu, чтобы открыть главное меню');
 });
 
 bot.on('message', msg => {
@@ -52,52 +33,11 @@ bot.on('message', msg => {
     const chatId = msg.chat.id;
     
     if (msg.text === 'Посчитать проект') {
-        bot.sendMessage(chatId,'Какая услуга вас интересует?',{
-            disable_web_page_preview: false,
-            reply_markup:JSON.stringify ({
-                inline_keyboard: [
-                    [{
-                        text:'Интернет магазин',
-                        callback_data: 'magazine'
-                    }],
-                    [{
-                        text:'Приложение',
-                        callback_data: 'app'
-                    }],
-                    [{
-                        text:'Сайт',
-                        callback_data: 'site'
-                    }],
-                    [{
-                        text:'Реклама',
-                        callback_data: 'marketing'
-                    }],
-                    [{
-                        text:'Дизайн',
-                        callback_data: 'design'
-                    }]
-                ],
-                one_time_keyboard: true
-            })
-        });
+        bot.sendMessage(chatId,'Какая услуга вас интересует?', keyboardsModule.alotofmenu.servicesKeyboard);
 
     }else if (msg.text === 'Наши контактные данные') {
-        bot.sendMessage(chatId,'Номер телефона: + 7 912 365 79 73\nСайт: teiwaz.ru'+'\nПочта: teiwaz@yandex.ru');
-        bot.sendMessage(chatId, text);
-        bot.sendMessage(chatId,'Наш сайт:',{
-            disable_web_page_preview: false,
-            reply_markup: JSON.stringify({
-                inline_keyboard: [
-                    [{
-                        text: 'Перейти на сайт',
-                        url:'https://www.google.ru'
-                    }]
-                ],
-                one_time_keyboard: true
-            })
-        });
-        bot.sendMessage(chatId,'Наш менеджер');
-        bot.sendContact(chatId,'+79123657973','Dmitry');
+        bot.sendMessage(chatId,'Наш сайт:', keyboardsModule.alotofmenu.sendCard);
+        bot.sendContact(chatId,'+79123657973','Свяжитесь с Дмитрием');
     }
     if (msg.contact !== undefined){
         var contact = msg.contact;
@@ -109,59 +49,73 @@ bot.on('message', msg => {
     }
 });
 
-var cost = 0;
+var bill = {
+  cost: 0,
+  service: ''
+};
+
 bot.on('callback_query', query => {
-    const {message: {chat, message_id, text}} = query;
-    console.log(debug(query));
+    var {message: {chat, message_id, text}} = query;
+    console.log(text);
 
     switch (query.data) {
         case "design":
-            bot.sendMessage(chat.id,'Выберите вид/виды требуемой услуги одним нажатием по нужным пунктам',{
-                disable_web_page_preview:false,
-                reply_markup:JSON.stringify({
-                    inline_keyboard:[
-                        [{
-                            text:'Дизайн корпоративного сайта',
-                            callback_data:'dcs'
-                        }],
-                        [{
-                            text:'Брендинг (логотипы, фирменный стиль)',
-                            callback_data:'db'
-                        }],
-                        [{
-                            text:'Дизайн приложения',
-                            callback_data:'da'
-                        }],
-                        [{
-                            text:'Дизайн магазина',
-                            callback_data:'dm'
-                        }],
-                        [{
-                            text:'Закрыть',
-                            callback_data:'dclose',
-                        }]
-                    ]
-                })
-            });
+            if (bill.service === ''){
+                bill.service +='Дизайн';
+            }
+            bot.sendMessage(chat.id,'Выберите вид/виды требуемой услуги одним нажатием по нужным пунктам', keyboardsModule.alotofmenu.designKeyboard);
             break;
+        case "marketing":
+            if (bill.service === ''){
+                bill.service +='Реклама';
+            }
+            bot.sendMessage(chat.id, 'Выберите вид/виды требуемой услуги одним нажатием по нужным пунктам', keyboardsModule.alotofmenu.marketingKeyboard);
+            break;
+
+        case "market":
+            if (bill.service === ''){
+                bill.service +='Интернет магазин';
+            }
+            bot.sendMessage(chat.id,'Выберите функциональность одним нажатием по нужным пунктам', keyboardsModule.alotofmenu.marketKeyboard);
+            break;
+
+        case "app":
+            if (bill.service === ''){
+                bill.service +='Приложение';
+            }
+            bot.sendMessage(chat.id,'Выберите функциональность одним нажатием по нужным пунктам', keyboardsModule.alotofmenu.appKeyboard);
+            break;
+
         case 'dcs':
-            bot.sendMessage(chat.id,'10 000');
-            cost+=10000;
+            bot.sendMessage(chat.id,'20 000');
+            bill.cost+=20000;
             break;
 
         case 'da':
             bot.sendMessage(chat.id, '10 000');
-            cost+=10000;
+            bill.cost+=10000;
             break;
 
-        case 'dclose':
-            //console.log(chat.id+" "+query.message.message_id);
+        case 'db':
+            bot.sendMessage(chat.id, '12 000');
+            bill.cost+=12000;
+            break;
+
+        case 'dm':
+            bot.sendMessage(chat.id, '15 000');
+            bill.cost+=15000;
+            break;
+
+        case 'close':
             //bot.editMessageReplyMarkup(query.chat.id, query.message.message_id);
-            bot.sendMessage(chat.id, 'Итоговая сумма : '+cost);
+            bot.deleteMessage(chat.id, query.message.message_id,);
+            //bot.answerCallbackQuery(query.id,"idi nakhyi", true);
+            bot.sendMessage(chat.id, `Итоговая сумма за услугу ${bill.service} = ${bill.cost}`);
+            bill.cost = 0;
+            bill.service = '';
             break;
         default:
             console.log('unknown callback');
-
     }
 
     bot.answerCallbackQuery({callback_query_id: query.id});
