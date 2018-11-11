@@ -107,7 +107,6 @@ bot.on('callback_query', query => {
             break;
 
         case 'close':
-            //bot.editMessageReplyMarkup(query.chat.id, query.message.message_id);
             bot.deleteMessage(chat.id, query.message.message_id,);
             //bot.answerCallbackQuery(query.id,"idi nakhyi", true);
             bot.sendMessage(chat.id, `Итоговая сумма за услугу ${bill.service} = ${bill.cost}`);
