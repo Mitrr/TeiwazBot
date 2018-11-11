@@ -116,7 +116,6 @@ bot.on('callback_query', query => {
         default:
             console.log('unknown callback');
     }
-
     bot.answerCallbackQuery({callback_query_id: query.id});
 });
 
