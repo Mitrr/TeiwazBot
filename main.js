@@ -2,6 +2,22 @@ process.env["NTBA_FIX_319"] = 1;
 
 const TelegramBot = require('node-telegram-bot-api');
 const tokenInfo = require("./token");
+const firebase = require('firebase');
+const firestore = require('firebase/firestore');
+
+//--firebase
+
+/*admin.initializeApp({credential: admin.credential.applicationDefault()});*/
+
+var admin = require("firebase-admin");
+var serviceAccount = require("./adminsdk");
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://serviceapp-42ff7.firebaseio.com"
+});
+var db = admin.firestore();
+//--fb code end
+
 const token = tokenInfo.token;
 
 const keyboardsModule = require('./keyboards');
@@ -14,7 +30,6 @@ const bot = new TelegramBot(token,{ polling:{
         }
     }
 });
-
 console.log('starting bot');
 
 const startMenuMsgOpt = keyboardsModule.alotofmenu.mainMenu;
@@ -45,8 +60,16 @@ bot.on('message', msg => {
         var fName = contact.first_name;
         var lName = contact.last_name;
         var number = contact.phone_number;
-        var userid = contact.user_id;
+        var uid = contact.user_id;
         console.log(fName+" "+lName+" "+number);
+
+        //adding data to firebase
+        var docRef = db.collection('clients').doc(fName);
+        var setData = docRef.set({
+            firstName:fName,
+            lastName:lName,
+            phone:number
+        });
     }
 });
 
@@ -125,3 +148,4 @@ bot.on('callback_query', query => {
 function debug(obj = {}) {
     return JSON.stringify(obj, null, 4);
 }
+
